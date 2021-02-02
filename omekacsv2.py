@@ -10,6 +10,7 @@ import requests
 import urllib3
 import urllib.request
 import ast
+import ssl
 
 '''
 Extract top-level metadata and element_texts from items returned by
@@ -17,11 +18,12 @@ Omeka 2.x API request, and then write to a CSV file. Intended for
 requests to items, collections, element sets, elements, files, & tags.
 '''
 
-endpoint = 'https://pennds.org/datarefugestorytelling/api'
+endpoint = 'https://morais.exhibits.library.upenn.edu/api'
 apikey = None
 resource = 'items'
 
 def request(query={}):
+    ssl._create_default_https_context = ssl._create_unverified_context
     response, content = OmekaClient(endpoint, apikey).get(resource, None, query)
     if response.status != 200:
         print(response.status, response.reason)
@@ -47,6 +49,8 @@ def get_all_pages(pages):
         page += 1
         time.sleep(2)
 
+ssl._create_default_https_context = ssl._create_unverified_context
+print("the thing is...")
 # make initial API request; get max pages
 response, content = request()
 pages = int(math.ceil(float(response['omeka-total-results'])/50))
@@ -78,7 +82,7 @@ for D in data:
         if k not in fields: fields.append(k)
 
 df = pd.DataFrame(data)
-df.to_csv('omeka-data-no-add.csv', index=False)
+df.to_csv('omeka-data-reclaimed.csv', index=False)
 print('File created: omeka-data-no-add.csv')
 
 # to request files and save in df
@@ -111,42 +115,5 @@ for index, row in df.iterrows():
             files_url.append(new_file_name)
 print(files_url)
 df['file'] = files_url
-df.to_csv('omeka-data-files.csv', index=False)
+df.to_csv('omeka-data-files-reclaimed.csv', index=False)
 print('File created: omeka-data-files.csv')
-
-# to request coordinates and save in df
-latitudes = []
-longitudes = []
-for index, row in df.iterrows():
-    name = row["id"]
-    dict = row['extended_resources_geolocations']
-    print(dict)
-    try: 
-        if 'url' in dict.keys():
-            url = dict['url']
-            go_url = urllib.request.urlopen(url)
-            review = go_url.read()
-            files_json = eval(review)
-            if 'latitude' not in files_json.keys(): 
-                lat = ""
-            else:
-                lat = files_json['latitude']
-            latitudes.append(lat)
-            if 'longitude' not in files_json.keys(): 
-                long = ""
-            else:
-                long = files_json['longitude']
-            longitudes.append(long)
-    except AttributeError:
-            lat = ""
-            long = "" 
-            latitudes.append(lat)
-            longitudes.append(long)        
-print(latitudes)
-print(longitudes)        
-df['latitude'] = latitudes
-df['longitude'] = latitudes
-
-
-df.to_csv('omeka-data-total.csv', index=False)
-print('File created: omeka-data-total.csv')

@@ -1,7 +1,6 @@
 import httplib2
 import urllib
 import mimetypes
-import ssl
 
 class OmekaClient:
     
@@ -53,6 +52,6 @@ class OmekaClient:
             url += "/" + str(id)
         if self._key is not None:
             query["key"] = self._key
-        url += "?" + urllib.parse.urlencode(query)
+        url += "?" + urllib.urlencode(query)
         resp, content = self._http.request(url, method, body=data, headers=headers)
         return resp, content

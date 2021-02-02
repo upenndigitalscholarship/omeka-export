@@ -46,6 +46,15 @@ def get_all_pages(pages):
         data.extend(json.loads(content))
         page += 1
         time.sleep(2)
+        
+def parse_multimap(ordered_pairs):
+    multimap = dict()
+    for k, v in ordered_pairs:
+        if k in multimap:
+            multimap[k].append(v)
+        else:
+            multimap[k] = [v]
+    return multimap
 
 # make initial API request; get max pages
 response, content = request()
@@ -82,71 +91,42 @@ df.to_csv('omeka-data-no-add.csv', index=False)
 print('File created: omeka-data-no-add.csv')
 
 # to request files and save in df
+
 files_url = []
+urls_to_check = []
 for index, row in df.iterrows():
     id = row["id"]
     url = row['files_url']
     go_url = urllib.request.urlopen(url)
     review = go_url.read()
     files_json = {}
-    for i in json.loads(review): files_json.update(i)
+    for i in json.loads(review, object_pairs_hook=parse_multimap): files_json.update(i) 
+    print(files_json)
     if 'file_urls' not in files_json.keys(): 
         file = ""
         files_url.append(file)
         print("no url for "+ id)
-    else:
-        file = files_json['file_urls']
-        file = file['original']
-        print("found url for "+ id)
-        if file.find('/'):
-            filename = file.rsplit('/', 1)[1]
-            file_name_full = filename.split(".")
-            file_name = file_name_full[0]
-            file_type = file_name_full[1]
-            new_file_name = "files/" + id + "." + file_type
-            response = requests.get(file)
-            with open(new_file_name, "wb") as download:
-                download.write(response.content)
-            print("file saved for "+ id + ": " + new_file_name)
-            files_url.append(new_file_name)
+    else: 
+        urls_to_add = files_json['file_urls']
+        list_of_urls = []
+        count = 0        
+        for url in urls_to_add:
+            file = files_json[url]
+            file = file['original']
+            print("found url for "+ id)
+            if file.find('/'):
+                filename = file.rsplit('/', 1)[1]
+                file_name_full = filename.split(".")
+                file_name = file_name_full[0]
+                file_type = file_name_full[1]
+                new_file_name = "files/" + id + "_" + str(count) + "." + file_type
+                response = requests.get(file)
+                with open(new_file_name, "wb") as download:
+                    download.write(response.content)
+                    print("file saved for "+ id + ": " + new_file_name)
+                    list_of_urls.append(new_file_name)
+        files_url.append(list_of_urls)
 print(files_url)
 df['file'] = files_url
 df.to_csv('omeka-data-files.csv', index=False)
 print('File created: omeka-data-files.csv')
-
-# to request coordinates and save in df
-latitudes = []
-longitudes = []
-for index, row in df.iterrows():
-    name = row["id"]
-    dict = row['extended_resources_geolocations']
-    print(dict)
-    try: 
-        if 'url' in dict.keys():
-            url = dict['url']
-            go_url = urllib.request.urlopen(url)
-            review = go_url.read()
-            files_json = eval(review)
-            if 'latitude' not in files_json.keys(): 
-                lat = ""
-            else:
-                lat = files_json['latitude']
-            latitudes.append(lat)
-            if 'longitude' not in files_json.keys(): 
-                long = ""
-            else:
-                long = files_json['longitude']
-            longitudes.append(long)
-    except AttributeError:
-            lat = ""
-            long = "" 
-            latitudes.append(lat)
-            longitudes.append(long)        
-print(latitudes)
-print(longitudes)        
-df['latitude'] = latitudes
-df['longitude'] = latitudes
-
-
-df.to_csv('omeka-data-total.csv', index=False)
-print('File created: omeka-data-total.csv')
