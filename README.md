@@ -1,12 +1,18 @@
-omekadd
+omeka-export
 =======
 
-This repo includes two Python scripts designed for use with the Omeka API. 
+Forked from the omekadd repo by Caleb McDaniel, <http://wcm1.web.rice.edu>, this repo includes Python scripts designed for use with the Omeka API. 
+
 One adds new items to Omeka from the command line using simple YAML documents.
 The other converts the content returned by GET API requests into a CSV file;
 it can be used as a sort of backup for Omeka metadata.
 
-Caleb McDaniel, <http://wcm1.web.rice.edu>
+The former script has not been edited.
+
+This repo updates the latter script (converting API content into a CSV file) for Python 3 and contains additional code for downloading/renaming files attached to items based on their Omeka ID numbers into the 'files' folder contained in this repository.
+ 
+omeka-export-one-file.py will only download and document one item per file, while omeka-export-multiple-files.py will download all the items per file. 
+
 
 Installation
 ============

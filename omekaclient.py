@@ -8,7 +8,7 @@ class OmekaClient:
     def __init__(self, endpoint, key=None):
         self._endpoint = endpoint
         self._key = key
-        self._http = httplib2.Http()
+        self._http = httplib2.Http(disable_ssl_certificate_validation=True)
     
     def get(self, resource, id=None, query={}):
         return self._request("GET", resource, id=id, query=query)
