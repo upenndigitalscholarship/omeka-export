@@ -18,7 +18,7 @@ Omeka 2.x API request, and then write to a CSV file. Intended for
 requests to items, collections, element sets, elements, files, & tags.
 '''
 
-endpoint = ''
+endpoint = 'https://morais.exhibits.library.upenn.edu/api'
 apikey = ''
 resource = 'items'
 
@@ -118,11 +118,11 @@ for index, row in df.iterrows():
                     file_type = file_name_full[1]
                     new_file_name = "files/" + id + "_" + str(count) + "." + file_type
                     urls.append(new_file_name)
-                    response = requests.get(file)
-                    with open(new_file_name, "wb") as download:
-                        download.write(response.content)
-                        print("files saved for "+ id + ": " + new_file_name)
-                        count+=1 
+                    #response = requests.get(file)
+                    #with open(new_file_name, "wb") as download:
+                    #    download.write(response.content)
+                    #    print("files saved for "+ id + ": " + new_file_name)
+                    #    count+=1 
         files_url.append(urls)
 #print(files_url)
 df['file'] = files_url
