@@ -19,7 +19,7 @@ Omeka 2.x API request, and then write to a CSV file. Intended for
 requests to items, collections, element sets, elements, files, & tags.
 '''
 
-endpoint = ''
+endpoint = 'https://singermanja2.exhibits.library.upenn.edu/api'
 apikey = None
 resource = 'items'
 
